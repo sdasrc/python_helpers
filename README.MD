@@ -1,0 +1,1 @@
+A repo with helpful python scripts aggregated over a long, long period of time. If you found any of these useful, click the star so the two stupid braincells I have can produce some dopamine from the validation. Cheers!
