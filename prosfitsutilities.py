@@ -13,7 +13,7 @@ def loadfits2dict(fitsfile,colname='sour_id'):
     fitsdict = {}
     for ths in tqdm_notebook(fitsarr): fitsdict[ths[fitskeys[colname]]] = ths
     for aa in list(fitsdict): 
-        if aa <= 0: del fitsdict[aa]
+        if aa < 0: del fitsdict[aa]
     return fitsdict, fitskeys
 
 
@@ -123,7 +123,22 @@ def weighted_quantile(values, quantiles, sample_weight=None,
         weighted_quantiles /= np.sum(sample_weight)
     return np.interp(quantiles, weighted_quantiles, values)
 
-def half_hist_to_gauss(tdata,tbins,twhich='left',doplot=True):
+def peak_from_kde(x,bandwidth=1.0):
+    import numpy as np
+    from scipy.stats import norm
+    from sklearn.neighbors import KernelDensity
+
+    # Use kernel density estimator to estimate the PDF of the distribution
+    kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(x.reshape(-1, 1))
+    pdf = np.exp(kde.score_samples(x.reshape(-1, 1)))
+
+    # Find the peak of the PDF
+    peak = x[np.argmax(pdf)]
+
+    print(f"Peak: {peak:.3f}")
+    return peak
+
+def half_hist_to_gauss(tdata,tpeak,twhich='left',doplot=True):
     '''
     To return mean and std of a 1-d normal distribution with upper
     and lower bounds fit to one half of a dist. 
@@ -140,23 +155,14 @@ def half_hist_to_gauss(tdata,tbins,twhich='left',doplot=True):
     
     
     # get a rough estimate of the peak
-    pops, bins = np.histogram(tdata, bins=tbins)
-    tp = bins[np.argmax(pops)]
-    tpeup, tpedn = bins[np.argmax(pops)+1] - tp, tp - bins[np.argmax(pops)-1]
+    if twhich == 'left':
+        tdist_1 = tdata[np.where(tdata < tpeak)[0]]
+        tdist_2 = tpeak + (tpeak - tdist_1)
+    else:
+        tdist_1 = tdata[np.where(tdata > tt)[0]]
+        tdist_2 = tpeak - (tdist_1 - tpeak)
 
-    # try with different versions of the peak
-
-    tdist = np.array([])
-    for tt in [tp-tpedn, tp, tp+tpeup]:
-        if twhich == 'left':
-            tdist_1 = tdata[np.where(tdata < tt)[0]]
-            tdist_2 = tt + (tt - tdist_1)
-        else:
-            tdist_1 = tdata[np.where(tdata > tt)[0]]
-            tdist_2 = tt - (tdist_1 - tt)
-            
-        
-        tdist = np.concatenate([tdist,np.concatenate([tdist_1, tdist_2])])
+    tdist = np.concatenate([tdist_1, tdist_2])
             
     (mu, sigma) = norm.fit(tdist)
     tptil16, tptil50, tptil84 = np.nanpercentile(tdist, [16, 50, 84])
@@ -171,7 +177,7 @@ def half_hist_to_gauss(tdata,tbins,twhich='left',doplot=True):
         
         tplt = axes[0]
         tplt.hist(tdist, bins=nbins, color='skyblue',density=True);
-        tplt.hist(tdata, bins=tbins, color='orange',density=True, alpha=0.4);
+        tplt.hist(tdata, bins=nbins, color='orange',density=True, alpha=0.4);
         tplt.set_ylabel('propto N')
         tplt.set_xlabel('x bins')
         tplt.set_title('Original dist')
@@ -196,6 +202,9 @@ def half_hist_to_gauss(tdata,tbins,twhich='left',doplot=True):
         
         plt.tight_layout()
                 
+    print('mu = {0:.3f}, sigma = {1:.3f}'.format(mu, sigma))        
+    print('16ptile = {0:.3f}, 50 = {1:.3f}, 84 = {2:.3f}'.format(tptil16, tptil50, tptil84))                  
+
     return np.array([mu, sigma]),np.array([tptil16, tptil50, tptil84])
 
 

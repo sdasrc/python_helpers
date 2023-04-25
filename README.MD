@@ -1,1 +1,21 @@
-A repo with helpful python scripts aggregated over a long, long period of time. If you found any of these useful, click the star so the two stupid braincells I have can produce some dopamine from the validation. Cheers!
+A repo with helpful python scripts aggregated (most my own, some borrowed without permission with an intent to return them to the rightful owner without ever making monetary benefits) over a long, long period of time. If you found any of these useful, click the star so the two stupid braincells I have can produce some dopamine from the validation. Cheers!
+
+ - loadfits2dict
+ - getvalwithsig
+ - getlogwithsig
+ - getbagpmass
+ - get_common_keys
+ - get_binmids
+ - weighted_quantile
+ - peak_from_kde
+ - half_hist_to_gauss
+ - hist_peaks
+ - element_counter
+ - ridgelines
+ - sample_werrors
+ - hex_to_rgb
+ - rgb_to_dec
+ - get_continuous_cmap
+ - main_seq
+ - norm_hist
+ - norm_weights
